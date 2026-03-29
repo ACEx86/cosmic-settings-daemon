@@ -1,21 +1,7 @@
 use std::{collections::BTreeMap, io, path::Path, rc::Rc, time::Duration};
 
 use futures::{Stream, StreamExt};
-pub use geonames::GeoPosition;
 use notify::{PollWatcher, RecursiveMode, Watcher};
-
-static GEODATA: &'static [u8] = include_bytes!("../data/timezone-geodata.bitcode-v0-6");
-
-/// Decodes the embedded geodata containing the largest cities nearest each timezone.
-pub fn decode_geodata() -> BTreeMap<String, GeoPosition> {
-    match geonames::bitcode::decode(GEODATA) {
-        Ok(ok) => ok,
-        Err(err) => {
-            log::error!("failed to decode timezone geodata: {}", err.to_string());
-            BTreeMap::new()
-        }
-    }
-}
 
 /// Get a stream of timezone updates backed by a poll watcher.
 pub fn receive_timezones() -> (PollWatcher, impl Stream<Item = io::Result<String>>) {

@@ -12,7 +12,6 @@ use cosmic::{config::CosmicTk, theme::CosmicTheme};
 use cosmic_config::CosmicConfigEntry;
 use cosmic_theme::{Theme, ThemeMode};
 
-use geonames::GeoPosition;
 use sunrise::{Coordinates, SolarDay, SolarEvent};
 use tokio::time::Instant;
 use tokio_stream::StreamExt;
@@ -200,8 +199,6 @@ pub async fn watch_theme(
         }
     }
 
-    // TODO allow preference for config file instead?
-    let geodata = crate::location::decode_geodata();
     let (_location_handle, location_updates) = crate::location::receive_timezones();
     futures::pin_mut!(location_updates);
 
@@ -431,23 +428,6 @@ pub async fn watch_theme(
 
                 let Ok(new_timezone) = location_result else {
                     continue;
-                };
-
-                let Some(&GeoPosition { latitude, longitude }) = geodata.get(&new_timezone) else {
-                    log::error!("no matching geodata for {new_timezone}");
-                    continue;
-                };
-
-                coords = Some((latitude, longitude));
-                match SunriseSunset::new(latitude, longitude, None) {
-                    Ok(s) => {
-                        sunrise_sunset = Some(s);
-                    },
-                    Err(err) => {
-                        log::error!("Failed to calculate sunrise and sunset for current location {err:?}");
-                        sunrise_sunset = None;
-                        continue;
-                    },
                 };
 
                 if !theme_mode.auto_switch {
